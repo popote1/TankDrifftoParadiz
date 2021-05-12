@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Mirror;
+using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -16,25 +17,23 @@ public class TankController : NetworkBehaviour
     public TrailRenderer trailRenderer1;
     public TrailRenderer trailRenderer2;
     public MeshRenderer MeshRenderer;
+    public GameObject PanelName;
+    public static Transform ActiveCam;
+    public TMP_Text PlayerName;
 
     private Rigidbody _rigidbody;
-    private Color _color;
+    [SyncVar] public  Color color;
+    [SyncVar] public  string name;
 
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
-        _color = Random.ColorHSV();
-
-        trailRenderer1.material.color = _color ;
-        trailRenderer2.material.color = _color ;
-        MeshRenderer.material.color = _color;
-
-
+        SetColor();
     }
 
     void Update()
     {
-        if (isLocalPlayer)
+        if (hasAuthority)
         {
             if (Input.GetAxisRaw("Vertical") != 0)
             {
@@ -51,4 +50,13 @@ public class TankController : NetworkBehaviour
             Tourret.up = _rigidbody.velocity.normalized;
         }
     }
+    
+    
+    public void SetColor()
+    {
+        trailRenderer1.material.color = color ;
+        trailRenderer2.material.color = color ;
+        MeshRenderer.material.color = color;  
+    }
+    
 }

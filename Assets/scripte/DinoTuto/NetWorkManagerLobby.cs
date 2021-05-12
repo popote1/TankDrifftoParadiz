@@ -117,7 +117,6 @@ public class NetWorkManagerLobby : NetworkManager
             ServerChangeScene("SampleScene");
             Debug.Log("La scene est la bonne");
         }
-        else Debug.Log("La scene n'est pas la bonne");
     }
 
     public override void ServerChangeScene(string newSceneName)
@@ -143,10 +142,17 @@ public class NetWorkManagerLobby : NetworkManager
 
     public override void OnServerChangeScene(string newSceneName)
     {
-        if (newSceneName.StartsWith("scene_Map"))
+        if (newSceneName.StartsWith("SampleScene"))
         {
+            Debug.Log("Cest la scene des spawn et spawn le systeme de Spawn");
+            if (_gamePlayerPrefabs==null)Debug.Log("ya pas la ref du player spawn systeme");
             GameObject playerSpawnSystemeInstance = Instantiate(_playerSpawnStystem);
             NetworkServer.Spawn(playerSpawnSystemeInstance);
+            DontDestroyOnLoad(playerSpawnSystemeInstance);
+        }
+        else
+        {
+            Debug.Log("Pas la bonne scene pour faire le spawn");
         }
     }
 

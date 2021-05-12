@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481694, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -189,7 +189,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
+  m_fontSize: 69.25
   m_fontSizeBase: 14
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -453,7 +453,7 @@ MonoBehaviour:
   onlineScene: Assets/Scenes/LoobyRoom.unity
   transport: {fileID: 74118238}
   networkAddress: localhost
-  maxConnections: 4
+  maxConnections: 10
   disconnectInactiveConnections: 0
   disconnectInactiveTimeout: 60
   authenticator: {fileID: 0}
@@ -586,7 +586,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
+  m_fontSize: 67.4
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -2531,8 +2531,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 288, y: -201.14032}
-  m_SizeDelta: {x: 556, y: 120.76021}
+  m_AnchoredPosition: {x: 288, y: -223.42645}
+  m_SizeDelta: {x: 556, y: 135.61763}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1727308920
 MonoBehaviour:
@@ -3190,8 +3190,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 288, y: -70.380104}
-  m_SizeDelta: {x: 556, y: 120.76021}
+  m_AnchoredPosition: {x: 288, y: -77.808815}
+  m_SizeDelta: {x: 556, y: 135.61763}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2091603565
 MonoBehaviour:

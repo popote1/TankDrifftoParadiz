@@ -25,19 +25,16 @@ public class PlayerSpawnSystem : NetworkBehaviour
 
    [ServerCallback]
    private void OnDestroy() => NetWorkManagerLobby.OnServerReadied -= SpawnPlayer;
-
+   
    public void SpawnPlayer(NetworkConnection conn)
    {
       Transform spawnPoint = spawnPoints.ElementAtOrDefault(nextIndex);
-      if (spawnPoint == null)
-      {
-         Debug.LogError($"&Missing Spawn point for player {spawnPoint}");
-         return;
-      }
-
+      Debug.Log("l'adress est " + conn.address);
+      Debug.Log(" fait spawnner un joueur");
       GameObject playerInstance =
          Instantiate(_playerPrefabs, spawnPoints[nextIndex].position, spawnPoints[nextIndex].rotation);
       NetworkServer.Spawn(playerInstance, conn);
+      playerInstance.GetComponent<TankController>().color = Random.ColorHSV();
       nextIndex++;
    }
 }
