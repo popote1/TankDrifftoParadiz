@@ -9,7 +9,8 @@ public class CameraAdder :NetworkBehaviour
     public CinemachineVirtualCamera Cam;
     void Start()
     {
-        if (hasAuthority)
+        
+       if (netIdentity.hasAuthority)
         {
             CinemachineVirtualCamera cam =Instantiate(Cam);
             cam.Follow = transform;

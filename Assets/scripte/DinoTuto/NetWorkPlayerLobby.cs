@@ -71,7 +71,6 @@ public class NetWorkPlayerLobby : NetworkBehaviour
             {
                 if (player.hasAuthority)break;
             }
-
             return;
         }
 

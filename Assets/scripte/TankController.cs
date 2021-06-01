@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Security.Authentication.ExtendedProtection;
 using Mirror;
 using TMPro;
 using UnityEngine;
@@ -29,6 +30,7 @@ public class TankController : NetworkBehaviour
     {
         _rigidbody = GetComponent<Rigidbody>();
         SetColor();
+        SetName();
     }
 
     void Update()
@@ -45,10 +47,10 @@ public class TankController : NetworkBehaviour
                 //_rigidbody.AddTorque(Vector3.up * Input.GetAxisRaw("Horizontal") * Time.deltaTime * RotationPower);
                 transform.Rotate(transform.up, Input.GetAxisRaw("Horizontal") * Time.deltaTime * RotationPower);
             }
-
-            
             Tourret.up = _rigidbody.velocity.normalized;
         }
+
+        if (ActiveCam!=null) PanelName.transform.forward = transform.position - ActiveCam.position;
     }
     
     
@@ -57,6 +59,11 @@ public class TankController : NetworkBehaviour
         trailRenderer1.material.color = color ;
         trailRenderer2.material.color = color ;
         MeshRenderer.material.color = color;  
+    }
+
+    private void SetName()
+    {
+        PlayerName.text = name;
     }
     
 }

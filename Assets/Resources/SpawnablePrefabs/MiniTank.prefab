@@ -1113,9 +1113,8 @@ MonoBehaviour:
   trailRenderer1: {fileID: 6651198692003423283}
   trailRenderer2: {fileID: 3314358680893470985}
   MeshRenderer: {fileID: 6416431410767890308}
-  PanelName: {fileID: 0}
-  ActiveCam: {fileID: 0}
-  PlayerName: {fileID: 0}
+  PanelName: {fileID: 3605906583814371269}
+  PlayerName: {fileID: 5475388189407735003}
   color: {r: 0, g: 0, b: 0, a: 0}
   name: 
 --- !u!114 &1597616742505935263
