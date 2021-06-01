@@ -26,6 +26,18 @@ public class TankController : NetworkBehaviour
     [SyncVar] public  Color color;
     [SyncVar] public  string name;
 
+    [Header("DriftMeter Info")] 
+    public float TargetVelocity=3;
+    public float VelocityFactor = 1;
+    public float DriftFactor = 1;
+
+    public float DritfMater;
+
+    public float DriftValue;
+    
+
+
+
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
@@ -35,15 +47,11 @@ public class TankController : NetworkBehaviour
 
     void Update()
     {
-        if (hasAuthority)
-        {
-            if (Input.GetAxisRaw("Vertical") != 0)
-            {
+        if (hasAuthority) {
+            if (Input.GetAxisRaw("Vertical") != 0) {
                 _rigidbody.AddForce(transform.forward * MovePover * Time.deltaTime * Input.GetAxisRaw("Vertical"));
             }
-
-            if (Input.GetAxisRaw("Horizontal") != 0)
-            {
+            if (Input.GetAxisRaw("Horizontal") != 0) {
                 //_rigidbody.AddTorque(Vector3.up * Input.GetAxisRaw("Horizontal") * Time.deltaTime * RotationPower);
                 transform.Rotate(transform.up, Input.GetAxisRaw("Horizontal") * Time.deltaTime * RotationPower);
             }
@@ -52,7 +60,11 @@ public class TankController : NetworkBehaviour
 
         if (ActiveCam!=null) PanelName.transform.forward = transform.position - ActiveCam.position;
     }
-    
+
+    private void DriftCalculator()
+    {
+        
+    }
     
     public void SetColor()
     {
