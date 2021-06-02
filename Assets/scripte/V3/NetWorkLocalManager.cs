@@ -1,22 +1,31 @@
+using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Mirror;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class NetWorkLocalManager : NetworkBehaviour
 {
     public LobbyScripteV3 PrefabHUDLobby;
     public LobbyScripteV3 HUDLobby;
+    public RaceManager RaceManager;
     public static List<PlayerNetData> playerNetDatas = new List<PlayerNetData>();
 
     public TankController PrefabTank;
+    public TankController Tank;
     public Vector3 SpawnPos = new Vector3(1,1,1);
 
     [Header("Server Shit")]
     public float IntervalCheck=2;
     private float _intervaltimer;
     [Header("Race Parameters")] 
+    public int selectedRace=0;
     public float TimeBeforeRace=10;
     private float _raceTimer;
+    public float TimeStartRace = 3;
+    private float _startRaceTime;
+    
     
     
     void Start()
@@ -24,6 +33,7 @@ public class NetWorkLocalManager : NetworkBehaviour
         if (isLocalPlayer) {
             HUDLobby = Instantiate(PrefabHUDLobby);
             HUDLobby.OnEnterGame += AddPlayer;
+            RaceManager = GameObject.Find("RaceManager").GetComponent<RaceManager>();
         }
     }
 
@@ -35,6 +45,7 @@ public class NetWorkLocalManager : NetworkBehaviour
             CMDStartNewRace();
         }
     }
+    
 
     public void AddPlayer()
     {
@@ -53,11 +64,40 @@ public class NetWorkLocalManager : NetworkBehaviour
     }
 
     [ClientRpc]
+    public void SetRace(int raceIndex)
+    {
+        if (RaceManager != null) {
+            RaceManager.SetRace(raceIndex);
+        }
+    }
+    [ClientRpc]
     public void StartRaceTimer()
     {
         if (HUDLobby!=null) HUDLobby.StartRaceTimer(TimeBeforeRace);
     }
-    
+
+    /*[ClientRpc]
+    public void SetPosition(Vector3 pos)
+    {
+        if (Tank != null) {
+            Tank.GetComponent<Rigidbody>().velocity = Vector3.zero;
+            Tank.GetComponent<NetworkTransform>().ServerTeleport(pos, quaternion.identity);
+            Tank.trailRenderer1.Clear();
+            Tank.trailRenderer2.Clear();
+        }
+    }*/
+    [ClientRpc]
+    public void SetPosition(Vector3 pos , Quaternion ori)
+    {
+        if (Tank != null) {
+            Tank.GetComponent<Rigidbody>().velocity = Vector3.zero;
+            //Debug.Log( ("la position est de"+pos.position +" et la rotation est de "+ pos.rotation));
+            Tank.GetComponent<NetworkTransform>().ServerTeleport(pos, ori);
+            Tank.trailRenderer1.Clear();
+            Tank.trailRenderer2.Clear();
+        }
+    }
+
     //Commandes
     [Command]
     public void CMDAddPlayer(string name , Color color, NetWorkLocalManager networkIdentity )
@@ -69,7 +109,8 @@ public class NetWorkLocalManager : NetworkBehaviour
     [Command]
     public void CMDStartNewRace()
     {
-        StartCountToRace();
+        if (selectedRace < RaceManager.Races.Count && selectedRace >= 0) StartCountToRace();
+        else Debug.Log("l'index de la course ne correspond a aucune course");
     }
     
     // SERVEUR PART
@@ -80,8 +121,7 @@ public class NetWorkLocalManager : NetworkBehaviour
         PlayerNetData newplayer = new PlayerNetData(name, color, networkIdentity);
         playerNetDatas.Add(newplayer);
         Debug.Log( "la list des Joueurs est de "+playerNetDatas.Count);
-        foreach (PlayerNetData player in playerNetDatas)
-        {
+        foreach (PlayerNetData player in playerNetDatas) {
             player.Connection.UpdatePlayerListPanel(playerNetDatas);
         }
         SpawnTank(newplayer);
@@ -94,38 +134,55 @@ public class NetWorkLocalManager : NetworkBehaviour
         go.name = playerNetData.Name;
         NetworkServer.Spawn(go.gameObject, playerNetData.Connection.netIdentity.connectionToClient);
         go.netIdentity.AssignClientAuthority(playerNetData.Connection.netIdentity.connectionToClient);
+        playerNetData.Connection.Tank = go;
     }
 
     [Server]
-    private void StartCountToRace()
-    {
+    private void StartCountToRace() {
         if (_raceTimer != 0) return;
         Debug.Log("Start new Race");
         _raceTimer = TimeBeforeRace;
-        foreach (PlayerNetData player in playerNetDatas)
-        {
+        foreach (PlayerNetData player in playerNetDatas) {
             player.Connection.StartRaceTimer();
         }
-        
     } 
     
     
     [ServerCallback]
     void Update()
     {
-        if (_raceTimer != 0)
-        {
+        if (_raceTimer != 0) {
             _raceTimer -= Time.deltaTime;
-            if (_raceTimer <= 0)
-            {
+            if (_raceTimer <= 0) {
                 _raceTimer = 0;
-                Debug.Log(" Start the RACE !!!");
+                _startRaceTime = TimeStartRace;
+               // float pos = 1;
+               if (RaceManager != null) Debug.Log("Le RaceManager est la");
+               if (RaceManager.Races[selectedRace] != null) Debug.Log("La Race est la");
+               if (RaceManager.Races[selectedRace].StartPos[0] != null) Debug.Log("La pos de start est la");
+                for (int i = 0; i < playerNetDatas.Count; i++)
+                {
+                    playerNetDatas[i].Connection.SetPosition(RaceManager.Races[selectedRace].StartPos[i].position,RaceManager.Races[selectedRace].StartPos[i].rotation);
+                }
+                /*foreach (PlayerNetData player in playerNetDatas) {
+                    player.Connection.SetPosition(new Vector3(pos, 1f, 1f));
+                    player.Connection.Tank.IsCOntrolled = false;
+                    pos += 2;
+                }*/
+                SetRace(selectedRace);
+                Debug.Log(" Race Ready");
             }
         }
         
-        
-        
-        
+        if (_startRaceTime != 0) {
+            _startRaceTime -= Time.deltaTime;
+            if (_startRaceTime <= 0) {
+                _startRaceTime = 0;
+                foreach (PlayerNetData player in playerNetDatas) player.Connection.Tank.IsCOntrolled = true;
+                Debug.Log(" Start the RACE !!!");
+            }
+        }
+  
         // Check for deconection
         _intervaltimer += Time.deltaTime;
         if (_intervaltimer > IntervalCheck) {
@@ -159,4 +216,5 @@ public struct PlayerNetData
         Color = color;
         Connection = connection;
     }
+ 
 }

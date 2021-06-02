@@ -11,6 +11,7 @@ using Random = UnityEngine.Random;
 
 public class TankController : NetworkBehaviour
 {
+    
     public float MovePover = 10;
     public float RotationPower = 10;
     public float TorrelRotationSencibility=1;
@@ -23,6 +24,7 @@ public class TankController : NetworkBehaviour
     public TMP_Text PlayerName;
 
     private Rigidbody _rigidbody;
+    [SyncVar]public bool IsCOntrolled = true;
     [SyncVar] public  Color color;
     [SyncVar] public  string name;
 
@@ -47,7 +49,7 @@ public class TankController : NetworkBehaviour
 
     void Update()
     {
-        if (hasAuthority) {
+        if (hasAuthority&&IsCOntrolled) {
             if (Input.GetAxisRaw("Vertical") != 0) {
                 _rigidbody.AddForce(transform.forward * MovePover * Time.deltaTime * Input.GetAxisRaw("Vertical"));
             }

@@ -1072,7 +1072,7 @@ BoxCollider:
   m_GameObject: {fileID: 8531527340830772723}
   m_Material: {fileID: 13400000, guid: b0b2955a601fd99438dba7b198053816, type: 2}
   m_IsTrigger: 1
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 4.48, y: 1.17, z: 5.87}
   m_Center: {x: 0, y: 0.25316864, z: -0.12897253}
@@ -1117,6 +1117,11 @@ MonoBehaviour:
   PlayerName: {fileID: 5475388189407735003}
   color: {r: 0, g: 0, b: 0, a: 0}
   name: 
+  TargetVelocity: 3
+  VelocityFactor: 1
+  DriftFactor: 1
+  DritfMater: 0
+  DriftValue: 0
 --- !u!114 &1597616742505935263
 MonoBehaviour:
   m_ObjectHideFlags: 0
