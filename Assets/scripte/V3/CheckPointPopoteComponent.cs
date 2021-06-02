@@ -11,7 +11,7 @@ public class CheckPointPopoteComponent : MonoBehaviour
         get => _isActive;
         set {
             if (value == false)  Marquer.enabled = _isActive =false;
-            else Marquer.enabled = _isActive = false;
+            else Marquer.enabled = _isActive = true;
               
         }
     }
@@ -36,7 +36,7 @@ public class CheckPointPopoteComponent : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (other.GetComponent<NetworkIdentity>() != null) {
-            if (other.GetComponent<NetworkIdentity>().hasAuthority)
+            if (other.GetComponent<NetworkIdentity>().hasAuthority&&IsActive)
             {
                 Debug.Log("Le joueur a passer le check point");
                 IsActive = false;

@@ -29,15 +29,22 @@ public class TankController : NetworkBehaviour
     [SyncVar] public  string name;
 
     [Header("DriftMeter Info")] 
-    public float TargetVelocity=3;
+    public float TargetVelocity=15;
     public float VelocityFactor = 1;
-    public float DriftFactor = 1;
 
+    public float Velocity;
+    public float DriftFactor = 1;
+    public float DriftFactorNormaliz;
+    public float DriftMultiplicator=1;
     public float DritfMater;
+    public float TankAngle;
 
     public float DriftValue;
-    
+    [Header("DriftEffect")] 
+    public ParticleSystem DriftParticleSystem;
+    public float MaxEmition;
 
+    public AudioSource DriftMusic;
 
 
     private void Start()
@@ -61,11 +68,23 @@ public class TankController : NetworkBehaviour
         }
 
         if (ActiveCam!=null) PanelName.transform.forward = transform.position - ActiveCam.position;
+        DriftCalculator();
     }
 
     private void DriftCalculator()
     {
+        Velocity = _rigidbody.velocity.magnitude;
+        DriftValue -= (TargetVelocity - _rigidbody.velocity.magnitude) * VelocityFactor;
+        TankAngle = Vector3.Angle(-transform.forward, _rigidbody.velocity)/90;
+
+        DriftFactor += (Vector3.Angle(-transform.forward, _rigidbody.velocity) / 90) * DriftMultiplicator;
         
+        DriftFactor = Mathf.Clamp(DriftFactor - (TargetVelocity - _rigidbody.velocity.magnitude) * DriftFactor, 0,
+            200);
+        DriftFactorNormaliz = DriftFactor / 200;
+        DriftMusic.volume = DriftFactorNormaliz * 2;
+        if (DriftFactorNormaliz>0.5f)DriftParticleSystem.Play();
+        else DriftParticleSystem.Stop();
     }
     
     public void SetColor()
