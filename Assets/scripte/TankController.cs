@@ -74,15 +74,15 @@ public class TankController : NetworkBehaviour
     private void DriftCalculator()
     {
         Velocity = _rigidbody.velocity.magnitude;
-        DriftValue -= (TargetVelocity - _rigidbody.velocity.magnitude) * VelocityFactor;
-        TankAngle = Vector3.Angle(-transform.forward, _rigidbody.velocity)/90;
-
+        DriftValue = (TargetVelocity - _rigidbody.velocity.magnitude) * VelocityFactor;
+        //TankAngle = Vector3.Angle(-transform.forward, _rigidbody.velocity)/90;
+        DriftFactor += (_rigidbody.velocity.magnitude - TargetVelocity) * VelocityFactor;
         DriftFactor += (Vector3.Angle(-transform.forward, _rigidbody.velocity) / 90) * DriftMultiplicator;
-        
-        DriftFactor = Mathf.Clamp(DriftFactor - (TargetVelocity - _rigidbody.velocity.magnitude) * DriftFactor, 0,
-            200);
+        DriftFactor = Mathf.Clamp(DriftFactor,0,200);
         DriftFactorNormaliz = DriftFactor / 200;
         DriftMusic.volume = DriftFactorNormaliz * 2;
+        
+        
         if (DriftFactorNormaliz>0.5f)DriftParticleSystem.Play();
         else DriftParticleSystem.Stop();
     }

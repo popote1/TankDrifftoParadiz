@@ -1910,7 +1910,7 @@ ParticleSystem:
     enabled: 1
     curve:
       serializedVersion: 2
-      minMaxState: 1
+      minMaxState: 2
       scalar: 1
       minScalar: 1
       maxCurve:
@@ -1951,7 +1951,7 @@ ParticleSystem:
         m_Curve:
         - serializedVersion: 3
           time: 0
-          value: 1
+          value: 0
           inSlope: 0
           outSlope: 0
           tangentMode: 0
@@ -1959,8 +1959,17 @@ ParticleSystem:
           inWeight: 0.33333334
           outWeight: 0.33333334
         - serializedVersion: 3
-          time: 1
-          value: 1
+          time: 0.49397588
+          value: 0.4064171
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0.33333334
+          outWeight: 0.33333334
+        - serializedVersion: 3
+          time: 0.9586792
+          value: 0
           inSlope: 0
           outSlope: 0
           tangentMode: 0
@@ -1972,7 +1981,7 @@ ParticleSystem:
         m_RotationOrder: 4
     y:
       serializedVersion: 2
-      minMaxState: 1
+      minMaxState: 2
       scalar: 1
       minScalar: 1
       maxCurve:
@@ -2025,7 +2034,7 @@ ParticleSystem:
         m_RotationOrder: 4
     z:
       serializedVersion: 2
-      minMaxState: 1
+      minMaxState: 2
       scalar: 1
       minScalar: 1
       maxCurve:
@@ -5925,22 +5934,23 @@ MonoBehaviour:
   RotationPower: 100
   TorrelRotationSencibility: 1
   Tourret: {fileID: 1150626692424930824}
-  trailRenderer1: {fileID: 6651198692003423283}
-  trailRenderer2: {fileID: 3314358680893470985}
+  trailRenderer1: {fileID: 3314358680893470985}
+  trailRenderer2: {fileID: 6651198692003423283}
   MeshRenderer: {fileID: 6416431410767890308}
   PanelName: {fileID: 3605906583814371269}
   PlayerName: {fileID: 5475388189407735003}
   IsCOntrolled: 1
-  color: {r: 0, g: 0, b: 0, a: 0}
+  color: {r: 1, g: 0, b: 0, a: 1}
   name: 
-  TargetVelocity: 3
-  VelocityFactor: 1
+  TargetVelocity: 12
+  VelocityFactor: 0.4
   Velocity: 0
-  DriftFactor: 1
+  DriftFactor: 0
   DriftFactorNormaliz: 0
+  DriftMultiplicator: 3.8
   DritfMater: 0
   TankAngle: 0
-  DriftValue: 0
+  DriftValue: 4.8
   DriftParticleSystem: {fileID: 7808991996100549436}
   MaxEmition: 200
   DriftMusic: {fileID: 5755175397782066095}

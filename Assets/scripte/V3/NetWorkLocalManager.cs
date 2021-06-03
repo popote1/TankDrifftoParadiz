@@ -25,7 +25,8 @@ public class NetWorkLocalManager : NetworkBehaviour
     private float _raceTimer;
     public float TimeStartRace = 3;
     private float _startRaceTime;
-    
+    private List<PlayerNetData> _racers = new List<PlayerNetData>();
+    private List<PlayerResultat> _playerResultats = new List<PlayerResultat>();
     
     
     void Start()
@@ -37,11 +38,8 @@ public class NetWorkLocalManager : NetworkBehaviour
         }
     }
 
-    public void StartNewRace()
-    {
-        if (isServer)
-        {
-            
+    public void StartNewRace() {
+        if (isServer) {
             CMDStartNewRace();
         }
     }
@@ -56,6 +54,11 @@ public class NetWorkLocalManager : NetworkBehaviour
             HUDLobby.OnStartNewRaceGame += StartNewRace;
         }
     }
+
+    public void FinishRace(float time)
+    {
+        CMDOnePlayerFinishRace(time , this);
+    }
     [ClientRpc]
     public void UpdatePlayerListPanel(List<PlayerNetData> list)
     {
@@ -64,28 +67,28 @@ public class NetWorkLocalManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void SetRace(int raceIndex)
-    {
+    public void SetRace(int raceIndex) {
         if (RaceManager != null) {
             RaceManager.SetRace(raceIndex);
         }
     }
     [ClientRpc]
-    public void StartRaceTimer()
-    {
+    public void StartRace() {
+        if (RaceManager != null) {
+            RaceManager.StartRace();
+        }
+    }
+    [ClientRpc]
+    public void StartRaceTimer() {
         if (HUDLobby!=null) HUDLobby.StartRaceTimer(TimeBeforeRace);
     }
 
-    /*[ClientRpc]
-    public void SetPosition(Vector3 pos)
-    {
-        if (Tank != null) {
-            Tank.GetComponent<Rigidbody>().velocity = Vector3.zero;
-            Tank.GetComponent<NetworkTransform>().ServerTeleport(pos, quaternion.identity);
-            Tank.trailRenderer1.Clear();
-            Tank.trailRenderer2.Clear();
-        }
-    }*/
+    [ClientRpc]
+    public void SetTankControl(bool value) {
+        if (Tank != null) Tank.IsCOntrolled=value;
+    }
+
+    
     [ClientRpc]
     public void SetPosition(Vector3 pos , Quaternion ori)
     {
@@ -112,7 +115,11 @@ public class NetWorkLocalManager : NetworkBehaviour
         if (selectedRace < RaceManager.Races.Count && selectedRace >= 0) StartCountToRace();
         else Debug.Log("l'index de la course ne correspond a aucune course");
     }
-    
+    [Command]public void CMDOnePlayerFinishRace(float time , NetWorkLocalManager netWorkLocalManager)
+    {
+        AddOneRaceResultat(time , netWorkLocalManager);
+    }
+
     // SERVEUR PART
     [Server]
     public void AddPlayerToList(string name , Color color, NetWorkLocalManager networkIdentity )
@@ -145,7 +152,20 @@ public class NetWorkLocalManager : NetworkBehaviour
         foreach (PlayerNetData player in playerNetDatas) {
             player.Connection.StartRaceTimer();
         }
-    } 
+    }
+    [Server]
+    private void AddOneRaceResultat(float  time ,NetWorkLocalManager netWorkLocalManager)
+    {
+        foreach (PlayerNetData players in playerNetDatas) {
+            if (players.Connection.netIdentity.connectionToServer == netWorkLocalManager.netIdentity.connectionToServer) {
+                _playerResultats.Add( new PlayerResultat(players , _playerResultats.Count+1,time));
+                //ToDo ---------------->   Send Info to other Clients
+                return;
+            }
+        }
+        
+            
+    }
     
     
     [ServerCallback]
@@ -156,18 +176,15 @@ public class NetWorkLocalManager : NetworkBehaviour
             if (_raceTimer <= 0) {
                 _raceTimer = 0;
                 _startRaceTime = TimeStartRace;
-               // float pos = 1;
-               if (RaceManager != null) Debug.Log("Le RaceManager est la");
-               if (RaceManager.Races[selectedRace] != null) Debug.Log("La Race est la");
-               if (RaceManager.Races[selectedRace].StartPos[0] != null) Debug.Log("La pos de start est la");
+               _racers.Clear();
                 for (int i = 0; i < playerNetDatas.Count; i++)
                 {
                     playerNetDatas[i].Connection.SetPosition(RaceManager.Races[selectedRace].StartPos[i].position,RaceManager.Races[selectedRace].StartPos[i].rotation);
+                    _racers.Add(playerNetDatas[i]);
                 }
                 /*foreach (PlayerNetData player in playerNetDatas) {
                     player.Connection.SetPosition(new Vector3(pos, 1f, 1f));
-                    player.Connection.Tank.IsCOntrolled = false;
-                    pos += 2;
+                    player.Connection.Tank.IsCOntrolled = false;                    pos += 2;
                 }*/
                 SetRace(selectedRace);
                 Debug.Log(" Race Ready");
@@ -178,7 +195,10 @@ public class NetWorkLocalManager : NetworkBehaviour
             _startRaceTime -= Time.deltaTime;
             if (_startRaceTime <= 0) {
                 _startRaceTime = 0;
-                foreach (PlayerNetData player in playerNetDatas) player.Connection.Tank.IsCOntrolled = true;
+                foreach (PlayerNetData player in playerNetDatas) {
+                    player.Connection.SetTankControl(true);
+                    player.Connection.StartRace();
+                }
                 Debug.Log(" Start the RACE !!!");
             }
         }
@@ -216,5 +236,17 @@ public struct PlayerNetData
         Color = color;
         Connection = connection;
     }
- 
+}
+
+public struct PlayerResultat {
+    public PlayerNetData Player;
+    public int Place;
+    public float Time;
+
+    public PlayerResultat(PlayerNetData player, int place, float time) {
+        Player = player;
+        Place = place;
+        Time = time;
+
+    }
 }
