@@ -203,6 +203,9 @@ MonoBehaviour:
   PanelHost: {fileID: 857194896634217012}
   PanelTimerRace: {fileID: 6063981844060149616}
   TxtRaceTimer: {fileID: 2770525906622049877}
+  PanelRaceScoreBoard: {fileID: 0}
+  PanelRaceScoreBoardHolder: {fileID: 0}
+  PrefabPlayerScore: {fileID: 0}
   PlayerName: 
   PlayerColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &556020501315561067
@@ -2120,7 +2123,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4540929618720553399
 RectTransform:
   m_ObjectHideFlags: 0
