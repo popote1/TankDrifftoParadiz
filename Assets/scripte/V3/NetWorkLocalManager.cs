@@ -10,6 +10,7 @@ public class NetWorkLocalManager : NetworkBehaviour
     public LobbyScripteV3 PrefabHUDLobby;
     public LobbyScripteV3 HUDLobby;
     public RaceManager RaceManager;
+    public static int SpawnIndex;
     public static List<PlayerNetData> playerNetDatas = new List<PlayerNetData>();
 
     public TankController PrefabTank;
@@ -25,8 +26,11 @@ public class NetWorkLocalManager : NetworkBehaviour
     private float _raceTimer;
     public float TimeStartRace = 3;
     private float _startRaceTime;
+    public float TimeEndRace = 30;
+    public static  float _timeEndRace;
     private List<PlayerNetData> _racers = new List<PlayerNetData>();
-    private List<PlayerResultat> _playerResultats = new List<PlayerResultat>();
+    private  static List<PlayerResultat> _playerResultats = new List<PlayerResultat>();
+    
     
     
     void Start()
@@ -38,12 +42,18 @@ public class NetWorkLocalManager : NetworkBehaviour
         }
     }
 
-    public void StartNewRace() {
-        if (isServer) {
+    public void StartNewRace(int index) {
+        if (isServer)
+        {
+            selectedRace = index;
             CMDStartNewRace();
         }
     }
-    
+
+    public void StopRaceHost()
+    {
+        CMDStopRace();
+    }
 
     public void AddPlayer()
     {
@@ -52,12 +62,24 @@ public class NetWorkLocalManager : NetworkBehaviour
         if (isServer) {
             HUDLobby.SetHostThings();
             HUDLobby.OnStartNewRaceGame += StartNewRace;
+            HUDLobby.OnCMDStopRace += StopRaceHost;
         }
     }
 
     public void FinishRace(float time)
     {
         CMDOnePlayerFinishRace(time , this);
+        //SetTankControl(false);
+        HUDLobby.SetOnRaceScoreBoard();
+    }
+
+    public Vector3 GetNextSpawnPoint(out Quaternion rot)
+    {
+        rot =GeneralSpawnPoints.GeneralsSpawnPoints[SpawnIndex].rotation;
+        Vector3 pos = GeneralSpawnPoints.GeneralsSpawnPoints[SpawnIndex].position;
+        SpawnIndex++;
+        if (SpawnIndex >= GeneralSpawnPoints.GeneralsSpawnPoints.Count) SpawnIndex = 0;
+        return pos;
     }
     [ClientRpc]
     public void UpdatePlayerListPanel(List<PlayerNetData> list)
@@ -68,8 +90,11 @@ public class NetWorkLocalManager : NetworkBehaviour
 
     [ClientRpc]
     public void SetRace(int raceIndex) {
+        Debug.Log("resois l'ordre de Set la Race");
         if (RaceManager != null) {
+            Debug.Log("lance l'ordre de Set la Race");
             RaceManager.SetRace(raceIndex);
+            RaceManager.OnRaceEnd = FinishRace;
         }
     }
     [ClientRpc]
@@ -87,11 +112,9 @@ public class NetWorkLocalManager : NetworkBehaviour
     public void SetTankControl(bool value) {
         if (Tank != null) Tank.IsCOntrolled=value;
     }
-
     
     [ClientRpc]
-    public void SetPosition(Vector3 pos , Quaternion ori)
-    {
+    public void SetPosition(Vector3 pos , Quaternion ori) {
         if (Tank != null) {
             Tank.GetComponent<Rigidbody>().velocity = Vector3.zero;
             //Debug.Log( ("la position est de"+pos.position +" et la rotation est de "+ pos.rotation));
@@ -99,6 +122,19 @@ public class NetWorkLocalManager : NetworkBehaviour
             Tank.trailRenderer1.Clear();
             Tank.trailRenderer2.Clear();
         }
+    }
+
+    [ClientRpc]
+    public void SendRaceResult(List<PlayerResultat> value) {
+        if (HUDLobby != null) HUDLobby.SetRaceResult(value); 
+    }
+    
+    [ClientRpc]
+    public void CloseRace()
+    {
+        if (HUDLobby != null) HUDLobby.CloseResultPanel();
+        if (RaceManager != null) RaceManager.CloseRace();
+        
     }
 
     //Commandes
@@ -120,6 +156,12 @@ public class NetWorkLocalManager : NetworkBehaviour
         AddOneRaceResultat(time , netWorkLocalManager);
     }
 
+    [Command]
+    public void CMDStopRace()
+    {
+        StopRace();
+    }
+
     // SERVEUR PART
     [Server]
     public void AddPlayerToList(string name , Color color, NetWorkLocalManager networkIdentity )
@@ -136,7 +178,9 @@ public class NetWorkLocalManager : NetworkBehaviour
     [Server]
     private void SpawnTank(PlayerNetData playerNetData)
     {
-        TankController go= Instantiate(PrefabTank, SpawnPos, Quaternion.identity);
+        Quaternion rot;
+        Vector3 pos = GetNextSpawnPoint(out rot);
+        TankController go= Instantiate(PrefabTank, pos,rot);
         go.color = playerNetData.Color;
         go.name = playerNetData.Name;
         NetworkServer.Spawn(go.gameObject, playerNetData.Connection.netIdentity.connectionToClient);
@@ -149,25 +193,45 @@ public class NetWorkLocalManager : NetworkBehaviour
         if (_raceTimer != 0) return;
         Debug.Log("Start new Race");
         _raceTimer = TimeBeforeRace;
-        foreach (PlayerNetData player in playerNetDatas) {
+        foreach (PlayerNetData player in playerNetDatas){
             player.Connection.StartRaceTimer();
+            Debug.Log(" Order SetRace on "+player.Name);
         }
     }
     [Server]
-    private void AddOneRaceResultat(float  time ,NetWorkLocalManager netWorkLocalManager)
-    {
-        foreach (PlayerNetData players in playerNetDatas) {
-            if (players.Connection.netIdentity.connectionToServer == netWorkLocalManager.netIdentity.connectionToServer) {
-                _playerResultats.Add( new PlayerResultat(players , _playerResultats.Count+1,time));
-                //ToDo ---------------->   Send Info to other Clients
-                return;
-            }
-        }
+    private void AddOneRaceResultat(float  time ,NetWorkLocalManager netWorkLocalManager) {
         
-            
+            if (_timeEndRace <= 0) _timeEndRace = TimeEndRace;
+            foreach (PlayerNetData players in playerNetDatas)
+            {
+                if (players.Connection.netIdentity.connectionToClient ==
+                    netWorkLocalManager.netIdentity.connectionToClient)
+                {
+                    _playerResultats.Add(new PlayerResultat(players, _playerResultats.Count + 1, time));
+                    players.Connection.SetTankControl(false);
+                }
+            }
+
+            foreach (PlayerNetData players in playerNetDatas)
+            {
+                players.Connection.SendRaceResult(_playerResultats);
+            }
     }
-    
-    
+
+    [Server]
+    private void StopRace()
+    {
+        _timeEndRace = 0;
+        foreach (PlayerNetData players in playerNetDatas) {
+            players.Connection.CloseRace();
+            Quaternion rot;
+            Vector3 pos = GetNextSpawnPoint(out rot);
+            players.Connection.SetPosition(pos, rot);
+            players.Connection.SetTankControl(true);
+        }
+    }
+
+
     [ServerCallback]
     void Update()
     {
@@ -177,16 +241,28 @@ public class NetWorkLocalManager : NetworkBehaviour
                 _raceTimer = 0;
                 _startRaceTime = TimeStartRace;
                _racers.Clear();
-                for (int i = 0; i < playerNetDatas.Count; i++)
-                {
-                    playerNetDatas[i].Connection.SetPosition(RaceManager.Races[selectedRace].StartPos[i].position,RaceManager.Races[selectedRace].StartPos[i].rotation);
-                    _racers.Add(playerNetDatas[i]);
-                }
-                /*foreach (PlayerNetData player in playerNetDatas) {
-                    player.Connection.SetPosition(new Vector3(pos, 1f, 1f));
-                    player.Connection.Tank.IsCOntrolled = false;                    pos += 2;
-                }*/
-                SetRace(selectedRace);
+               _playerResultats.Clear();
+               for (int i = 0; i < playerNetDatas.Count; i++)
+               {
+                   if (RaceManager.Races[selectedRace].StartPos.Count > i)
+                   {
+                       playerNetDatas[i].Connection.SetPosition(RaceManager.Races[selectedRace].StartPos[i].position,
+                           RaceManager.Races[selectedRace].StartPos[i].rotation);
+                       playerNetDatas[i].Connection.SetRace(selectedRace);
+                       _racers.Add(playerNetDatas[i]);
+                   }
+                   else
+                   {
+                       Quaternion rot;
+                       playerNetDatas[i].Connection.SetPosition(GetNextSpawnPoint(out rot) ,rot);
+                       playerNetDatas[i].Connection.SetRace(selectedRace);
+                   }
+               }
+               /*foreach (PlayerNetData player in playerNetDatas) {
+                   player.Connection.SetPosition(new Vector3(pos, 1f, 1f));
+                   player.Connection.Tank.IsCOntrolled = false;                    pos += 2;
+               }*/
+                
                 Debug.Log(" Race Ready");
             }
         }
@@ -200,6 +276,22 @@ public class NetWorkLocalManager : NetworkBehaviour
                     player.Connection.StartRace();
                 }
                 Debug.Log(" Start the RACE !!!");
+            }
+        }
+
+        Debug.Log(" time de End race est de " + _timeEndRace);
+        if (_timeEndRace != 0 && hasAuthority)
+        {
+            _timeEndRace -= Time.deltaTime;
+            if (_timeEndRace <= 0) {
+                _timeEndRace = 0;
+                foreach (PlayerNetData players in playerNetDatas) {
+                    players.Connection.CloseRace();
+                    Quaternion rot;
+                    Vector3 pos = GetNextSpawnPoint(out rot);
+                    players.Connection.SetPosition(pos, rot);
+                    players.Connection.SetTankControl(true);
+                }
             }
         }
   

@@ -7,6 +7,8 @@ public class RaceManager : MonoBehaviour
 {
     public List<RaceComponent> Races;
 
+    public List<Transform> GeneralSpawnPoints;
+
     public Action<float> OnRaceEnd;
 
     
@@ -55,6 +57,13 @@ public class RaceManager : MonoBehaviour
     public void StartRace()
     {
         _isStarted = true;
+    }
+
+    public void CloseRace()
+    {
+        Races[_indexSelectedRace].gameObject.SetActive(false);
+        _isInRace = false;
+        _isStarted = false;
     }
 
     private void Update()

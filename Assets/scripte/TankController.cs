@@ -65,6 +65,7 @@ public class TankController : NetworkBehaviour
                 transform.Rotate(transform.up, Input.GetAxisRaw("Horizontal") * Time.deltaTime * RotationPower);
             }
             Tourret.up = _rigidbody.velocity.normalized;
+            // Tourret.eulerAngles = new Vector3(-90, 0, Tourret.eulerAngles.z);
         }
 
         if (ActiveCam!=null) PanelName.transform.forward = transform.position - ActiveCam.position;
@@ -80,8 +81,8 @@ public class TankController : NetworkBehaviour
         DriftFactor += (Vector3.Angle(-transform.forward, _rigidbody.velocity) / 90) * DriftMultiplicator;
         DriftFactor = Mathf.Clamp(DriftFactor,0,200);
         DriftFactorNormaliz = DriftFactor / 200;
-        DriftMusic.volume = DriftFactorNormaliz * 2;
-        
+        if (hasAuthority) DriftMusic.volume = DriftFactorNormaliz * 2;
+        else DriftMusic.volume = 0;
         
         if (DriftFactorNormaliz>0.5f)DriftParticleSystem.Play();
         else DriftParticleSystem.Stop();
